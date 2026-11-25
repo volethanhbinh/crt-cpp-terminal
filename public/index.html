@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRT-CPP // TERMINAL OS v4.2 — C++ IDE & Visual Memory Debugger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="crt-fx-on">
+  <div class="room-backdrop">
+    <div class="crt-monitor">
+      <div class="monitor-bezel-top">
+        <span class="bezel-brand">PHOSPHOR-IX // C++ CYBERWORKSTATION</span>
+        <span class="bezel-status" id="healthLedText">SYSTEM READY</span>
+      </div>
+
+      <div class="crt-screen-outer">
+        <div class="crt-screen-inner">
+          <div class="crt-scanlines" aria-hidden="true"></div>
+          <div class="crt-vignette" aria-hidden="true"></div>
+
+          <!-- TOP COMMAND HEADER -->
+          <header class="crt-header">
+            <div class="brand-block">
+              <div class="brand-title">CRT-CPP // TERMINAL OS</div>
+              <div class="brand-sub" id="toolchainInfo">G++ &amp; GDB MI2 ENGINE INITIALIZING...</div>
+            </div>
+
+            <div class="toolbar-controls">
+              <label class="ctrl-group">
+                <span>PRESET</span>
+                <select id="presetSelect" title="Select C++ code preset">
+                  <option value="pointers">01. POINTERS &amp; STRUCTS</option>
+                  <option value="linkedlist">02. LINKED LIST HEAP GRAPH</option>
+                  <option value="recursion">03. RECURSION &amp; CALL STACK</option>
+                  <option value="sorting">04. ARRAY TELEMETRY SORT</option>
+                  <option value="segfault">05. NULL PTR CRASH DETECTIVE</option>
+                </select>
+              </label>
+
+              <label class="ctrl-group">
+                <span>STD</span>
+                <select id="stdSelect">
+                  <option value="c++17">C++17</option>
+                  <option value="c++20" selected>C++20</option>
+                  <option value="c++23">C++23</option>
+                </select>
+              </label>
+
+              <label class="ctrl-group">
+                <span>OPT</span>
+                <select id="optSelect">
+                  <option value="-O0" selected>-O0 (DEBUG)</option>
+                  <option value="-O2">-O2 (FAST)</option>
+                  <option value="-O3">-O3 (MAX)</option>
+                </select>
+              </label>
+
+              <button id="btnRun" class="crt-btn primary" title="Ctrl + Enter">[▶ COMPILE &amp; RUN]</button>
+              <button id="btnDebug" class="crt-btn" title="Start GDB Live Debugger">[⌖ LIVE DEBUG]</button>
+              <button id="btnTrace" class="crt-btn accent" title="Record execution steps for Time-Travel scrubbing">[⏱ TIME-TRAVEL]</button>
+              <button id="btnFx" class="crt-btn small" title="Toggle CRT Scanlines">[CRT: ON]</button>
+              <button id="btnSound" class="crt-btn small" title="Toggle retro beep sound">[SFX: ON]</button>
+            </div>
+          </header>
+
+          <!-- MAIN WORKSPACE GRID -->
+          <main class="crt-grid">
+            <!-- LEFT: SOURCE CODE EDITOR + DEBUG TRANSPORT -->
+            <section class="crt-panel editor-panel">
+              <div class="panel-header">
+                <span>SOURCE TERMINAL // MAIN.CPP</span>
+                <span class="panel-meta" id="editorCursorInfo">LN 1, COL 1 | BP: 0</span>
+              </div>
+
+              <div class="debug-transport-bar">
+                <div class="live-dbg-controls">
+                  <button id="btnStepOver" class="dbg-btn" disabled title="F10 - Step Over">STEP OVER</button>
+                  <button id="btnStepInto" class="dbg-btn" disabled title="F11 - Step Into">STEP INTO</button>
+                  <button id="btnStepOut" class="dbg-btn" disabled title="Shift+F11 - Step Out">STEP OUT</button>
+                  <button id="btnContinue" class="dbg-btn" disabled title="F5 - Continue">CONTINUE</button>
+                  <button id="btnStopDebug" class="dbg-btn danger" disabled>STOP</button>
+                </div>
+
+                <div class="timetravel-controls" id="timeTravelBar">
+                  <button id="btnTtPrev" class="dbg-btn" disabled>◀</button>
+                  <button id="btnTtPlay" class="dbg-btn" disabled>▶ PLAY</button>
+                  <input type="range" id="ttSlider" min="0" max="0" value="0" disabled />
+                  <button id="btnTtNext" class="dbg-btn" disabled>▶</button>
+                  <span id="ttLabel" class="tt-label">STEP --/--</span>
+                </div>
+              </div>
+
+              <div class="editor-wrapper">
+                <div class="gutter" id="editorGutter" title="Click a line number to toggle Breakpoint"></div>
+                <div class="code-stack">
+                  <pre class="code-highlight" id="codeHighlight" aria-hidden="true"></pre>
+                  <textarea id="codeEditor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+                </div>
+              </div>
+
+              <div class="editor-footer-hint">
+                <span>CLICK LINE #: TOGGLE BREAKPOINT (●)</span>
+                <span>CTRL+ENTER: RUN | F10: OVER | F11: INTO | F5: CONTINUE</span>
+                <span id="debugStatusBadge" class="status-pill">IDLE</span>
+              </div>
+            </section>
+
+            <!-- CENTER: POINTER & MEMORY TOPOLOGY + BOTTOM INSPECTOR -->
+            <section class="center-column">
+              <div class="crt-panel topology-panel">
+                <div class="panel-header">
+                  <span>POINTER &amp; MEMORY TOPOLOGY</span>
+                  <span class="panel-meta" id="topologySummary">STACK: 0 VARS | HEAP: 0 NODES</span>
+                </div>
+                <div class="topology-canvas-wrap" id="topologyWrap">
+                  <svg id="topologySvg" class="topology-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+                  <div class="topology-empty" id="topologyEmpty">
+                    START [⌖ LIVE DEBUG] OR [⏱ TIME-TRAVEL] TO VISUALIZE POINTERS, STACK VARIABLES &amp; HEAP MEMORY IN REAL TIME.
+                  </div>
+                </div>
+              </div>
+
+              <!-- MULTI-TAB INSPECTOR CONSOLE -->
+              <div class="crt-panel inspector-panel">
+                <div class="tab-bar">
+                  <button class="tab-btn active" data-tab="terminal">TERMINAL I/O</button>
+                  <button class="tab-btn" data-tab="variables">VARS &amp; WATCH</button>
+                  <button class="tab-btn" data-tab="memory">HEX RAM DUMP</button>
+                  <button class="tab-btn" data-tab="disasm">X86_64 ASM</button>
+                  <button class="tab-btn" data-tab="stack">STACK / REGS / SAFETY</button>
+                </div>
+
+                <div class="tab-content active" id="tab-terminal">
+                  <div class="io-split">
+                    <div class="io-box">
+                      <div class="sub-label">PROGRAM STDOUT / STDERR &amp; COMPILER LOG</div>
+                      <pre id="terminalOutput" class="terminal-pre">CRT-CPP OS READY. PRESS [COMPILE &amp; RUN] OR [TIME-TRAVEL]...</pre>
+                      <div class="interactive-stdin-bar" id="interactiveStdinBar">
+                        <span class="stdin-prompt">&gt; STDIN:</span>
+                        <input id="liveStdinInput" class="crt-input-line" type="text" placeholder="Type input and press Enter (e.g. 10 20)..." disabled />
+                        <button id="btnSendStdin" class="crt-btn small" disabled>[SEND]</button>
+                        <button id="btnSendEof" class="crt-btn small" disabled title="Close input stream (EOF / Ctrl+D)">[EOF]</button>
+                        <button id="btnStopRun" class="dbg-btn danger" disabled>[■ KILL]</button>
+                      </div>
+                    </div>
+                    <div class="io-inputs">
+                      <label class="sub-label" for="stdinInput">PRE-FILLED STDIN (OPTIONAL)</label>
+                      <textarea id="stdinInput" class="crt-input-area" placeholder="Optional pre-filled stdin (or leave empty to type interactively on the left)..."></textarea>
+                      <label class="sub-label" for="argsInput">ARGV CLI ARGS</label>
+                      <input id="argsInput" class="crt-input-line" type="text" placeholder="e.g. --mode fast 42" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="tab-content" id="tab-variables">
+                  <div class="watch-bar">
+                    <input type="text" id="watchInput" class="crt-input-line" placeholder="Add watch expression (e.g. *p, np->val, arr[1], sizeof(Node))..." />
+                    <button id="btnAddWatch" class="crt-btn small">[+ WATCH]</button>
+                    <input type="text" id="evalInput" class="crt-input-line" placeholder="Instant GDB Eval (e.g. p + 1)..." />
+                    <button id="btnEvalExpr" class="crt-btn small">[EVAL]</button>
+                  </div>
+                  <div id="evalResultBanner" class="eval-banner hidden"></div>
+                  <div class="table-scroll">
+                    <table class="crt-table">
+                      <thead>
+                        <tr>
+                          <th>NAME</th>
+                          <th>TYPE</th>
+                          <th>ADDRESS</th>
+                          <th>SIZE</th>
+                          <th>VALUE / TARGET</th>
+                          <th>DEREF (*PTR)</th>
+                        </tr>
+                      </thead>
+                      <tbody id="varsTableBody">
+                        <tr><td colspan="6" class="dim-cell">NO ACTIVE DEBUG FRAME</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="watches-list" id="watchesList"></div>
+                </div>
+
+                <div class="tab-content" id="tab-memory">
+                  <div class="watch-bar">
+                    <input type="text" id="memAddrInput" class="crt-input-line" placeholder="Address or expression (&amp;a, p, $sp)..." />
+                    <button id="btnReadMem" class="crt-btn small">[INSPECT RAM]</button>
+                    <span class="panel-meta" id="memRangeLabel">64 BYTES WINDOW</span>
+                  </div>
+                  <div class="hex-dump-box" id="hexDumpBox">
+                    <div class="dim-cell">NO RAM DATA YET. CLICK ANY VARIABLE IN THE TOPOLOGY OR ENTER AN ADDRESS TO INSPECT BYTES.</div>
+                  </div>
+                </div>
+
+                <div class="tab-content" id="tab-disasm">
+                  <pre id="disasmBox" class="terminal-pre">COMPILE OR DEBUG TO VIEW X86_64 DISASSEMBLY (OBJDUMP -D -S)...</pre>
+                </div>
+
+                <div class="tab-content" id="tab-stack">
+                  <div class="stack-safety-grid">
+                    <div class="sub-box">
+                      <div class="sub-label">CALL STACK BACKTRACE</div>
+                      <div id="callStackBox" class="mini-list">NO FRAMES</div>
+                      <div class="sub-label" style="margin-top:8px;">CPU REGISTERS</div>
+                      <div id="registersBox" class="regs-grid">NO REGISTERS</div>
+                    </div>
+                    <div class="sub-box">
+                      <div class="sub-label">STATIC MEMORY &amp; SAFETY ANALYZER</div>
+                      <div id="staticSafetyBox" class="mini-list">NOT ANALYZED YET.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- RIGHT: CRT TELEMETRY DASHBOARD (INSPIRED DIRECTLY BY REFERENCE IMAGE) -->
+            <aside class="telemetry-column">
+              <!-- PANEL 1: DATA USAGE (BAR + OVERLAY LINE) -->
+              <div class="crt-panel telemetry-panel">
+                <div class="panel-header">
+                  <span>DATA USAGE</span>
+                  <span class="panel-meta" id="dataUsageMeta">BYTES</span>
+                </div>
+                <svg id="dataUsageSvg" class="telemetry-svg" viewBox="0 0 320 165"></svg>
+              </div>
+
+              <!-- PANEL 2: SYSTEM STATUS (METRICS + HATCHED PIE CHART) -->
+              <div class="crt-panel telemetry-panel">
+                <div class="panel-header">
+                  <span>SYSTEM STATUS</span>
+                  <span class="panel-meta" id="sysStatusBadge">OK</span>
+                </div>
+                <div class="sys-status-body">
+                  <div class="sys-metrics" id="sysMetrics">
+                    <div>CPU TEMP: <span class="hi">45°C</span></div>
+                    <div>COMPILE: <span class="hi" id="metricCompile">-- ms</span></div>
+                    <div>RAM FREE: <span class="hi" id="metricRam">-- MB</span></div>
+                    <div>BIN SPACE: <span class="hi" id="metricBin">-- B</span></div>
+                    <div>STACK USED: <span class="hi" id="metricStack">0 B</span></div>
+                    <div>ACTIVE PTRS: <span class="hi" id="metricPtrs">0</span></div>
+                  </div>
+                  <svg id="systemPieSvg" class="pie-svg" viewBox="0 0 130 130"></svg>
+                </div>
+              </div>
+
+              <!-- PANEL 3: NETWORK / MEMORY ACTIVITY (WAVEFORM LINE) -->
+              <div class="crt-panel telemetry-panel">
+                <div class="panel-header">
+                  <span>EXECUTION ACTIVITY</span>
+                  <span class="panel-meta" id="activityMeta">LIVE WAVE</span>
+                </div>
+                <svg id="activitySvg" class="telemetry-svg" viewBox="0 0 320 135"></svg>
+              </div>
+            </aside>
+          </main>
+        </div>
+      </div>
+
+      <!-- MONITOR HARDWARE BOTTOM BEZEL -->
+      <div class="monitor-bezel-bottom">
+        <div class="speaker-grille" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="bezel-buttons">
+          <div class="hw-led active" title="CRT Power"></div>
+          <button class="hw-btn" id="hwBtnContrast" title="Toggle Phosphor Intensity"></button>
+          <button class="hw-btn" id="hwBtnScanline" title="Toggle Scanlines"></button>
+          <button class="hw-btn" id="hwBtnSound" title="Toggle Audio"></button>
+          <button class="hw-btn power" id="hwBtnReset" title="Reset Output"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

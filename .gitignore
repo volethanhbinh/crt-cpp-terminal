@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Compiled C/C++ artifacts & debug binaries
+*.exe
+*.out
+*.o
+*.obj
+*.pdb
+*.ilk
+*.dSYM/
+program
+a.out
+
+# Temporary compiler/debugger outputs
+tmp/
+temp/
+crt_cpp_jobs/
+inferior_stdout.txt
+inferior_stdin.txt
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo

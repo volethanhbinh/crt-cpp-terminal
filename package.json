@@ -1,0 +1,23 @@
+{
+  "name": "crt-cpp-cyber-terminal",
+  "version": "1.0.0",
+  "description": "Retro CRT Phosphor Green C++ Web IDE, Compiler, Interactive GDB Debugger, Pointer Graph & Memory Inspector ready for Render.com",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-suite.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "cpp",
+    "ide",
+    "gdb",
+    "debugger",
+    "crt",
+    "render",
+    "memory-visualizer"
+  ],
+  "license": "MIT"
+}
